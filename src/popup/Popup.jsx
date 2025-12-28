@@ -1,5 +1,12 @@
 import { useState } from "react";
 
+function getContentScriptFiles() {
+  const manifest = chrome.runtime.getManifest();
+  const contentScripts = manifest?.content_scripts || [];
+  const files = contentScripts.flatMap((entry) => entry.js || []);
+  return Array.from(new Set(files));
+}
+
 function sendMessageToActiveTab(message) {
   return new Promise((resolve) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -8,15 +15,47 @@ function sendMessageToActiveTab(message) {
         resolve({ error: "No active tab found." });
         return;
       }
-      chrome.tabs.sendMessage(tabId, message, (res) => {
-        const lastError = chrome.runtime.lastError;
-        if (lastError) {
-          console.warn("Message failed:", lastError);
-          resolve({ error: lastError.message });
-          return;
-        }
-        resolve({ data: res });
-      });
+
+      const send = (allowInject) => {
+        chrome.tabs.sendMessage(tabId, message, (res) => {
+          const lastError = chrome.runtime.lastError;
+          if (!lastError) {
+            resolve({ data: res });
+            return;
+          }
+
+          const missingReceiver =
+            lastError.message?.includes("Could not establish connection") ||
+            lastError.message?.includes("Receiving end does not exist");
+
+          if (!allowInject || !missingReceiver) {
+            console.warn("Message failed:", lastError);
+            resolve({ error: lastError.message });
+            return;
+          }
+
+          const files = getContentScriptFiles();
+          if (!files.length) {
+            resolve({ error: lastError.message });
+            return;
+          }
+
+          chrome.scripting.executeScript(
+            { target: { tabId, allFrames: true }, files },
+            () => {
+              const injectError = chrome.runtime.lastError;
+              if (injectError) {
+                console.warn("Content script inject failed:", injectError);
+                resolve({ error: injectError.message });
+                return;
+              }
+              send(false);
+            }
+          );
+        });
+      };
+
+      send(true);
     });
   });
 }
