@@ -146,8 +146,8 @@ function logArticlesWithScripting() {
 export default function Popup() {
   const [articleCount, setArticleCount] = useState(null);
   const [logMessage, setLogMessage] = useState("");
-  const [resetNodeId, setResetNodeId] = useState("");
-  const [resetMessage, setResetMessage] = useState("");
+  const [siblingNodeId, setSiblingNodeId] = useState("");
+  const [siblingMessage, setSiblingMessage] = useState("");
 
   const handleCountArticles = async () => {
     setLogMessage("");
@@ -192,26 +192,37 @@ export default function Popup() {
     );
   };
 
-  const handleResetNext = async () => {
-    setResetMessage("");
-    const nodeId = resetNodeId.trim();
+  const handleGetSibling = async () => {
+    setSiblingMessage("");
+    const nodeId = siblingNodeId.trim();
     if (!nodeId) {
-      setResetMessage("Enter a node id first.");
+      setSiblingMessage("Enter a node id first.");
       return;
     }
 
-    const res = await sendMessageToActiveTab({ type: "RESET_NEXT", nodeId });
+    const res = await sendMessageToActiveTab({ type: "GET_SIBLING", nodeId });
     if (res?.error) {
-      setResetMessage(res.error);
+      setSiblingMessage(res.error);
       return;
     }
 
-    if (res?.data?.success) {
-      setResetMessage(`Called resetNext for "${nodeId}".`);
+    const payload = res?.data;
+    if (!payload) {
+      setSiblingMessage("No response from content script.");
       return;
     }
 
-    setResetMessage(res?.data?.error || "Could not call resetNext.");
+    if (!payload.success) {
+      setSiblingMessage(payload.error || "Could not get sibling.");
+      return;
+    }
+
+    if (payload.siblingFound && payload.siblingId) {
+      setSiblingMessage(`Sibling found: ${payload.siblingId}`);
+      return;
+    }
+
+    setSiblingMessage("No sibling found.");
   };
 
   return (
@@ -235,14 +246,14 @@ export default function Popup() {
       <div style={{ display: "flex", gap: 6, marginTop: 12 }}>
         <input
           type="text"
-          value={resetNodeId}
-          onChange={(e) => setResetNodeId(e.target.value)}
+          value={siblingNodeId}
+          onChange={(e) => setSiblingNodeId(e.target.value)}
           placeholder="Enter node id"
           style={{ flex: 1 }}
         />
-        <button onClick={handleResetNext}>Reset next</button>
+        <button onClick={handleGetSibling}>Get sibling</button>
       </div>
-      {resetMessage && <p>{resetMessage}</p>}
+      {siblingMessage && <p>{siblingMessage}</p>}
     </div>
   );
 }

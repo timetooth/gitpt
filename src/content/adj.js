@@ -3,6 +3,7 @@
 
 const ARTICLE_SEL = 'article[data-turn-id]';
 const PREV_SEL = 'button[aria-label="Previous response"]';
+const NEXT_SEL = 'button[aria-label="Next response"]';
 
 function sleep(ms) {
   return new Promise(r => setTimeout(r, ms));
@@ -62,13 +63,17 @@ function hasSibling(article) {
     return nextBtn !== null && !nextBtn.disabled;
 }
 
-function getSibling(article, parent_id = null) {
+async function getSibling(article, parent_id = null) {
     article_id = article.getAttribute("data-turn-id");
     if (!hasSibling(article)) {
         return null;
     }
-    nextBtn = article.querySelector('button[aria-label="Next response"]');
+    nextBtn = article.querySelector(NEXT_SEL);
     nextBtn.click();
+
+    const beforeChildId = article_id;
+    // wait for UI to actually switch
+    await waitForChildTurnChange(parent_id, beforeChildId);
     // After clicking, the next article should be the sibling
     let sibling = getNext(parent_id);
     return sibling;

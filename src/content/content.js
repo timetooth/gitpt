@@ -1,4 +1,4 @@
-import { resetNext } from "./adj";
+import { resetNext, getSibling, getNext } from "./adj";
 
 function get_articles() {
   const articles = document.querySelectorAll("article");
@@ -44,16 +44,26 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({ count: articles.length });
     return;
   }
-
-  if (request.type === "RESET_NEXT") {
+  
+  if (request.type === "GET_SIBLING") {
     const nodeId = typeof request.nodeId === "string" ? request.nodeId.trim() : "";
     if (!nodeId) {
       sendResponse({ success: false, error: "nodeId is required" });
       return;
     }
 
-    resetNext(nodeId);
-    sendResponse({ success: true });
+    const child = getNext(nodeId);
+    if (!child) {
+      sendResponse({ success: false, error: `No child found for "${nodeId}".` });
+      return;
+    }
+
+    const sibling = getSibling(child, nodeId);
+    sendResponse({
+      success: true,
+      siblingFound: !!sibling,
+      siblingId: sibling?.getAttribute("data-turn-id") || null
+    });
     return;
   }
 
