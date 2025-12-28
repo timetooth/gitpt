@@ -1,4 +1,4 @@
-import { getSibling, getNext, buildTree } from "./adj";
+import { getSibling, getNext, getCurrentContent, buildTree } from "./adj";
 
 function get_articles() {
   const articles = document.querySelectorAll("article");
@@ -71,6 +71,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
     })();
     return true; // keep the message channel open for async work
+  }
+
+  if (request.type === "GET_CURRENT_CONTENT") {
+    try {
+      const nodeId = typeof request.nodeId === "string" ? request.nodeId.trim() : null;
+      const content = getCurrentContent(nodeId || null);
+      sendResponse({ success: true, content });
+    } catch (err) {
+      console.error("GET_CURRENT_CONTENT failed", err);
+      sendResponse({ success: false, error: err?.message || "Failed to get current content." });
+    }
+    return;
   }
 
   if (request.type === "LOG_ARTICLE_TEXTS") {

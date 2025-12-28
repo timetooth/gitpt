@@ -149,6 +149,8 @@ export default function Popup() {
   const [siblingNodeId, setSiblingNodeId] = useState("");
   const [siblingMessage, setSiblingMessage] = useState("");
   const [treeMessage, setTreeMessage] = useState("");
+  const [currentNodeId, setCurrentNodeId] = useState("");
+  const [currentContentMessage, setCurrentContentMessage] = useState("");
 
   const handleCountArticles = async () => {
     setLogMessage("");
@@ -226,6 +228,38 @@ export default function Popup() {
     setSiblingMessage("No sibling found.");
   };
 
+  const handleGetCurrentContent = async () => {
+    setCurrentContentMessage("");
+    const nodeId = currentNodeId.trim();
+
+    const res = await sendMessageToActiveTab({
+      type: "GET_CURRENT_CONTENT",
+      nodeId
+    });
+
+    if (res?.error) {
+      setCurrentContentMessage(res.error);
+      return;
+    }
+
+    const payload = res?.data;
+    if (!payload) {
+      setCurrentContentMessage("No response from content script.");
+      return;
+    }
+
+    if (!payload.success) {
+      setCurrentContentMessage(payload.error || "Failed to get content.");
+      return;
+    }
+
+    const content =
+      typeof payload.content === "string" && payload.content.trim().length > 0
+        ? payload.content.trim()
+        : "(empty)";
+    setCurrentContentMessage(content);
+  };
+
   const handleBuildTree = async () => {
     setTreeMessage("");
     const res = await sendMessageToActiveTab({ type: "BUILD_TREE" });
@@ -277,6 +311,24 @@ export default function Popup() {
         <button onClick={handleGetSibling}>Get sibling</button>
       </div>
       {siblingMessage && <p>{siblingMessage}</p>}
+
+      <div style={{ display: "flex", gap: 6, marginTop: 12 }}>
+        <input
+          type="text"
+          value={currentNodeId}
+          onChange={(e) => setCurrentNodeId(e.target.value)}
+          placeholder="Node id (blank = first)"
+          style={{ flex: 1 }}
+        />
+        <button onClick={handleGetCurrentContent}>Get content</button>
+      </div>
+      {currentContentMessage && (
+        <textarea
+          readOnly
+          value={currentContentMessage}
+          style={{ width: "100%", minHeight: 80, marginTop: 6 }}
+        />
+      )}
 
       <button onClick={handleBuildTree} style={{ marginTop: 12 }}>
         Build tree (logs to console)

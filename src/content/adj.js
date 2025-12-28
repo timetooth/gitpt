@@ -39,6 +39,25 @@ function getCurrent(node_id) {
     return articles[index];
 }
 
+function getCurrentContent(node_id) {
+    // Return the article with the given node_id
+    let articles = Array.from(document.querySelectorAll("article"));
+    if (articles.length === 0 || node_id === "root") {
+        return "GitPT";
+    }
+    if (node_id === null) {
+        return articles[0].innerText.trim();
+    }
+
+    let index = articles.findIndex(
+        (article) => article.getAttribute("data-turn-id") === node_id
+    );
+    if (index === -1) {
+        return "GitPT";
+    }
+    return articles[index].innerText.trim();
+}
+
 function getNext(node_id) {
     // Return the next article after the article with the given node_id
     let articles = Array.from(document.querySelectorAll("article"));
@@ -143,4 +162,4 @@ async function buildTree() {
   return graph;
 }
 
-export { getNext, hasSibling, getSibling, buildTree, resetNext };
+export { getNext, hasSibling, getSibling, getCurrentContent, buildTree, resetNext };
