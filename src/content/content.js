@@ -1,4 +1,4 @@
-import { getSibling, getNext } from "./adj";
+import { getSibling, getNext, buildTree } from "./adj";
 
 function get_articles() {
   const articles = document.querySelectorAll("article");
@@ -86,5 +86,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "GET_PARAGRAPH_COUNT") {
     const paragraphs = document.querySelectorAll("p");
     sendResponse({ count: paragraphs.length });
+  }
+
+  if (request.type === "BUILD_TREE") {
+    try {
+      const graph = buildTree();
+      console.log("buildTree graph:", graph);
+      sendResponse({ success: true, nodeCount: graph.size });
+    } catch (err) {
+      console.error("BUILD_TREE failed", err);
+      sendResponse({ success: false, error: err?.message || "Failed to build tree." });
+    }
+    return;
   }
 });

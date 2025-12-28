@@ -63,20 +63,19 @@ function hasSibling(article) {
     return nextBtn !== null && !nextBtn.disabled;
 }
 
-async function getSibling(article, parent_id = null) {
-    let article_id = article.getAttribute("data-turn-id");
-    if (!hasSibling(article)) {
-        return null;
-    }
-    const nextBtn = article.querySelector(NEXT_SEL);
-    nextBtn.click();
+async function getSibling(article, parent_id) {
+  if (!hasSibling(article)) return null;
 
-    const beforeChildId = article_id;
-    // wait for UI to actually switch
-    await waitForChildTurnChange(parent_id, beforeChildId);
-    // After clicking, the next article should be the sibling
-    let sibling = getNext(parent_id);
-    return sibling;
+  const before = getNext(parent_id);
+  const beforeId = before?.getAttribute("data-turn-id") ?? null;
+
+  const nextBtn = article.querySelector(NEXT_SEL);
+  if (!nextBtn || nextBtn.disabled) return null;
+
+  nextBtn.click();
+  await waitForChildTurnChange(parent_id, beforeId);
+
+  return getNext(parent_id);
 }
 
 async function resetNext(node_id) {
@@ -104,29 +103,46 @@ function addEdge(graph, u, v) {
   graph.get(u).push(v);
 }
 
-function dfs(node_id, graph) {
-    // node is turn-id of the article
+async function dfs(node_id, graph, seen = new Set()) {
+  // Avoid infinite recursion / reprocessing the same node
+  if (seen.has(node_id)) return;
+  seen.add(node_id);
 
-    let child = getNext(node_id); // child is the next article
-    if (child === null) {
-        return;
-    }
+  // Reset the variant carousel for the child (so we start from first)
+  await resetNext(node_id);
 
-    resetNext(node_id);
+  let child = getNext(node_id);
+  if (!child) return;
 
-    while (getNext(node_id)) {
-        let child_id = child.getAttribute("data-turn-id");
-        addEdge(graph, node_id, child.getAttribute("data-turn-id"));
-        dfs(child.getAttribute("data-turn-id"), graph);
-        child = getSibling(child, node_id);
-    }
+  // This set is only for enumerating all sibling-variants at this parent
+  const siblingsVisited = new Set();
+
+  while (child) {
+    const child_id = child.getAttribute("data-turn-id");
+    if (!child_id) break;
+
+    // stop if we loop back to a previously seen sibling variant
+    if (siblingsVisited.has(child_id)) break;
+    siblingsVisited.add(child_id);
+
+    addEdge(graph, node_id, child_id);
+
+    // recurse down the visible child
+    await dfs(child_id, graph, seen);
+
+    // move to next sibling variant
+    if (!hasSibling(child)) break;
+    child = await getSibling(child, node_id);
+  }
 }
 
-function buildTree() {
-    let graph = new Map();
-    root_id = "root";
-    dfs(root_id, graph);
-    return graph;
+async function buildTree() {
+  const graph = new Map();
+  const root_id = "root";
+  await dfs(root_id, graph);
+  console.log("=====*=====*=====*=====*=====*=====");
+  console.log("Built tree graph:\n", graph);
+  return graph;
 }
 
 export { getNext, hasSibling, getSibling, buildTree, resetNext };

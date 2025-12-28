@@ -148,6 +148,7 @@ export default function Popup() {
   const [logMessage, setLogMessage] = useState("");
   const [siblingNodeId, setSiblingNodeId] = useState("");
   const [siblingMessage, setSiblingMessage] = useState("");
+  const [treeMessage, setTreeMessage] = useState("");
 
   const handleCountArticles = async () => {
     setLogMessage("");
@@ -225,6 +226,28 @@ export default function Popup() {
     setSiblingMessage("No sibling found.");
   };
 
+  const handleBuildTree = async () => {
+    setTreeMessage("");
+    const res = await sendMessageToActiveTab({ type: "BUILD_TREE" });
+    if (res?.error) {
+      setTreeMessage(res.error);
+      return;
+    }
+
+    const payload = res?.data;
+    if (!payload) {
+      setTreeMessage("No response from content script.");
+      return;
+    }
+
+    if (!payload.success) {
+      setTreeMessage(payload.error || "Failed to build tree.");
+      return;
+    }
+
+    setTreeMessage(`buildTree ran. Nodes: ${payload.nodeCount ?? "unknown"}. Check console for graph.`);
+  };
+
   return (
     <div style={{ padding: 12, width: 240 }}>
       <h3>Article Tools</h3>
@@ -254,6 +277,11 @@ export default function Popup() {
         <button onClick={handleGetSibling}>Get sibling</button>
       </div>
       {siblingMessage && <p>{siblingMessage}</p>}
+
+      <button onClick={handleBuildTree} style={{ marginTop: 12 }}>
+        Build tree (logs to console)
+      </button>
+      {treeMessage && <p>{treeMessage}</p>}
     </div>
   );
 }
