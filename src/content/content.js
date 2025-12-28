@@ -1,4 +1,4 @@
-import { resetNext, getSibling, getNext } from "./adj";
+import { getSibling, getNext } from "./adj";
 
 function get_articles() {
   const articles = document.querySelectorAll("article");
@@ -27,7 +27,6 @@ function get_articles() {
     articleCount: articles.length,
     turnId,
     turnType,
-    testId,
     hasPrev: !!prevButton,
     hasNext: !!nextButton,
     isPrevDisabled,
@@ -46,25 +45,32 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
   
   if (request.type === "GET_SIBLING") {
-    const nodeId = typeof request.nodeId === "string" ? request.nodeId.trim() : "";
-    if (!nodeId) {
-      sendResponse({ success: false, error: "nodeId is required" });
-      return;
-    }
+    (async () => {
+      const nodeId = typeof request.nodeId === "string" ? request.nodeId.trim() : "";
+      if (!nodeId) {
+        sendResponse({ success: false, error: "nodeId is required" });
+        return;
+      }
 
-    const child = getNext(nodeId);
-    if (!child) {
-      sendResponse({ success: false, error: `No child found for "${nodeId}".` });
-      return;
-    }
+      try {
+        const child = getNext(nodeId);
+        if (!child) {
+          sendResponse({ success: false, error: `No child found for "${nodeId}".` });
+          return;
+        }
 
-    const sibling = getSibling(child, nodeId);
-    sendResponse({
-      success: true,
-      siblingFound: !!sibling,
-      siblingId: sibling?.getAttribute("data-turn-id") || null
-    });
-    return;
+        const sibling = await getSibling(child, nodeId);
+        sendResponse({
+          success: true,
+          siblingFound: !!sibling,
+          siblingId: sibling?.getAttribute("data-turn-id") || null
+        });
+      } catch (err) {
+        console.error("GET_SIBLING failed", err);
+        sendResponse({ success: false, error: err?.message || "Failed to get sibling." });
+      }
+    })();
+    return true; // keep the message channel open for async work
   }
 
   if (request.type === "LOG_ARTICLE_TEXTS") {

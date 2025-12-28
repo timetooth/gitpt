@@ -59,16 +59,16 @@ function getNext(node_id) {
 }
 
 function hasSibling(article) {
-    nextBtn = article.querySelector('button[aria-label="Next response"]');
+    const nextBtn = article.querySelector(NEXT_SEL);
     return nextBtn !== null && !nextBtn.disabled;
 }
 
 async function getSibling(article, parent_id = null) {
-    article_id = article.getAttribute("data-turn-id");
+    let article_id = article.getAttribute("data-turn-id");
     if (!hasSibling(article)) {
         return null;
     }
-    nextBtn = article.querySelector(NEXT_SEL);
+    const nextBtn = article.querySelector(NEXT_SEL);
     nextBtn.click();
 
     const beforeChildId = article_id;
@@ -115,7 +115,7 @@ function dfs(node_id, graph) {
     resetNext(node_id);
 
     while (getNext(node_id)) {
-        child_id = child.getAttribute("data-turn-id");
+        let child_id = child.getAttribute("data-turn-id");
         addEdge(graph, node_id, child.getAttribute("data-turn-id"));
         dfs(child.getAttribute("data-turn-id"), graph);
         child = getSibling(child, node_id);
