@@ -140,8 +140,6 @@ async function buildTree() {
   const graph = new Map();
   const root_id = "root";
   await dfs(root_id, graph);
-  console.log("=====*=====*=====*=====*=====*=====");
-  console.log("Built tree graph:\n", graph);
   return graph;
 }
 
