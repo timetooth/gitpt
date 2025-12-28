@@ -122,7 +122,14 @@ function addEdge(graph, u, v) {
   graph.get(u).push(v);
 }
 
-async function dfs(node_id, graph, seen = new Set()) {
+function addMeta(meta, id, article) {
+  if (!id || meta.has(id)) return;
+  const content = (article?.innerText || "").trim();
+  const turn = article?.getAttribute?.("data-turn") || null;
+  meta.set(id, { content, turn });
+}
+
+async function dfs(node_id, graph, meta, seen = new Set()) {
   // Avoid infinite recursion / reprocessing the same node
   if (seen.has(node_id)) return;
   seen.add(node_id);
@@ -145,9 +152,10 @@ async function dfs(node_id, graph, seen = new Set()) {
     siblingsVisited.add(child_id);
 
     addEdge(graph, node_id, child_id);
+    addMeta(meta, child_id, child);
 
     // recurse down the visible child
-    await dfs(child_id, graph, seen);
+    await dfs(child_id, graph, meta, seen);
 
     // move to next sibling variant
     if (!hasSibling(child)) break;
@@ -157,9 +165,11 @@ async function dfs(node_id, graph, seen = new Set()) {
 
 async function buildTree() {
   const graph = new Map();
+  const meta = new Map();
   const root_id = "root";
-  await dfs(root_id, graph);
-  return graph;
+  meta.set(root_id, { content: "GitPT", turn: null });
+  await dfs(root_id, graph, meta);
+  return { graph, meta };
 }
 
 export { getNext, hasSibling, getSibling, getCurrentContent, buildTree, resetNext };

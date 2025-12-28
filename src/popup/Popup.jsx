@@ -279,7 +279,9 @@ export default function Popup() {
       return;
     }
 
-    setTreeMessage(`buildTree ran. Nodes: ${payload.nodeCount ?? "unknown"}. Check console for graph.`);
+    setTreeMessage(
+      `buildTree ran. Nodes: ${payload.nodeCount ?? "unknown"}, meta entries: ${payload.metaCount ?? "unknown"}. Check console for details.`
+    );
   };
 
   return (
