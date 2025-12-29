@@ -3,7 +3,7 @@ import { EdgeCurvedArrowProgram } from "@sigma/edge-curve";
 import Sigma from "sigma";
 import { EdgeArrowProgram } from "sigma/rendering";
 
-export default function GraphDemo({ graph }) {
+export default function GraphDemo({ graph, onNodeClick }) {
   const containerRef = useRef(null);
   const rendererRef = useRef(null);
 
@@ -50,14 +50,17 @@ export default function GraphDemo({ graph }) {
 
     renderer.on("enterNode", showLabel);
     renderer.on("leaveNode", hideLabel);
+    renderer.on("clickNode", ({ node }) => onNodeClick?.(node));
 
     return () => {
       renderer.off?.("enterNode", showLabel);
       renderer.off?.("leaveNode", hideLabel);
+      renderer.off?.("clickNode", onNodeClick);
       renderer.removeListener?.("enterNode", showLabel);
       renderer.removeListener?.("leaveNode", hideLabel);
+      renderer.removeListener?.("clickNode", onNodeClick);
     };
-  }, [graph]);
+  }, [graph, onNodeClick]);
 
   return (
     <div style={{ position: "relative" }}>

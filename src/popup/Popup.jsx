@@ -124,8 +124,7 @@ function getGraphologyGraph(graph = null, meta = null) {
 
 export default function Popup() {
   const [treeMessage, setTreeMessage] = useState("");
-  const [goTargetId, setGoTargetId] = useState("");
-  const [goMessage, setGoMessage] = useState("");
+  const [navMessage, setNavMessage] = useState("");
   const [graphologyGraph, setGraphologyGraph] = useState(getGraphologyGraph());
   
   const handleBuildTree = async () => {
@@ -155,32 +154,27 @@ export default function Popup() {
     );
   };
 
-  const handleGoToNode = async () => {
-    const targetId = goTargetId.trim();
-    if (!targetId) {
-      setGoMessage("Enter a node id to navigate.");
-      return;
-    }
-
-    setGoMessage("Navigating...");
-    const res = await sendMessageToActiveTab({ type: "GO_TO_NODE", targetId });
+  const handleNodeClick = async (nodeId) => {
+    if (!nodeId) return;
+    setNavMessage(`Navigating to ${nodeId}...`);
+    const res = await sendMessageToActiveTab({ type: "GO_TO_NODE", targetId: nodeId });
     if (res?.error) {
-      setGoMessage(res.error);
+      setNavMessage(res.error);
       return;
     }
 
     const payload = res?.data;
     if (!payload) {
-      setGoMessage("No response from content script.");
+      setNavMessage("No response from content script.");
       return;
     }
 
     if (!payload.success) {
-      setGoMessage(payload.error || "Failed to navigate.");
+      setNavMessage(payload.error || "Failed to navigate.");
       return;
     }
 
-    setGoMessage(`Moved to ${targetId}`);
+    setNavMessage(`Moved to ${nodeId}`);
   };
 
   return (
@@ -200,21 +194,8 @@ export default function Popup() {
       <p style={{ marginTop: 0, color: "#4b5563" }}>
         Hardcoded Sigma graph using single-sided arrows.
       </p>
-      <GraphDemo graph={graphologyGraph} />
-
-      {/* Go To Node */}
-      <h3 style={{ marginBottom: 6 }}>Go To Node</h3>
-      <input
-        type="text"
-        placeholder="Node ID"
-        value={goTargetId}
-        onChange={(e) => setGoTargetId(e.target.value)}
-        style={{ width: "100%", padding: 6, boxSizing: "border-box", marginBottom: 8 }}
-      />
-      <button style={{ width: "100%" }} onClick={handleGoToNode}>
-        Go
-      </button>
-      {goMessage && <p style={{ marginTop: 6 }}>{goMessage}</p>}
+      <GraphDemo graph={graphologyGraph} onNodeClick={handleNodeClick} />
+      {navMessage && <p style={{ marginTop: 8 }}>{navMessage}</p>}
 
     </div>
   );
