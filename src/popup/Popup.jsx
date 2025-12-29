@@ -96,7 +96,8 @@ function getGraphologyGraph(graph = null, meta = null) {
       x: loc.x + xOffset,
       y: -loc.y,
       size: 6,
-      label: contents?.content ?? "",
+      label: "", // hide by default; actual text stored separately for hover
+      hoverLabel: contents?.content.substring(10) ?? "",
       color: pickColor(nodeId),
     });
   }

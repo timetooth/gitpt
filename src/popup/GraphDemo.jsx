@@ -36,6 +36,29 @@ export default function GraphDemo({ graph }) {
     });
   }, [graph]);
 
+  useEffect(() => {
+    const renderer = rendererRef.current;
+    if (!renderer || !graph) return undefined;
+
+    const showLabel = ({ node }) => {
+      const label = graph.getNodeAttribute(node, "hoverLabel") || "";
+      graph.setNodeAttribute(node, "label", label);
+    };
+    const hideLabel = ({ node }) => {
+      graph.setNodeAttribute(node, "label", "");
+    };
+
+    renderer.on("enterNode", showLabel);
+    renderer.on("leaveNode", hideLabel);
+
+    return () => {
+      renderer.off?.("enterNode", showLabel);
+      renderer.off?.("leaveNode", hideLabel);
+      renderer.removeListener?.("enterNode", showLabel);
+      renderer.removeListener?.("leaveNode", hideLabel);
+    };
+  }, [graph]);
+
   return (
     <div style={{ position: "relative" }}>
       <div
