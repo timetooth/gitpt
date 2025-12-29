@@ -1,6 +1,7 @@
 import { useState } from "react";
 import GraphDemo from "./GraphDemo";
 import { MultiGraph } from "graphology";
+import { getLocs } from "./graph";
 
 function getContentScriptFiles() {
   const manifest = chrome.runtime.getManifest();
@@ -63,30 +64,50 @@ function sendMessageToActiveTab(message) {
 }
 
 function getGraphologyGraph(graph = null, meta = null) {
-    const graphologyGraph = new MultiGraph();
+  const graphologyGraph = new MultiGraph();
 
-    // Graph data
-    // Node: {id, x, y, size, label, color}
-    // Edge: {id, src-id, tgt-id, size, color, curved}
+  if (!graph) return graphologyGraph;
 
-    graphologyGraph.addNode("a", { x: 0, y: 0, size: 5, label: Math.random().toString(36).substring(2, 7), color: "#8843ffff" });
-    graphologyGraph.addNode("b", { x: 1, y: -1, size: 5, label: "Bastian" });
-    graphologyGraph.addNode("c", { x: 3, y: -2, size: 5, label: "Charles" });
-    graphologyGraph.addNode("d", { x: 1, y: -3, size: 5, label: "Dorothea" });
-    graphologyGraph.addNode("e", { x: 3, y: -4, size: 5, label: "Ernestine" });
-    graphologyGraph.addNode("f", { x: 4, y: -5, size: 5, label: "Fabian" });
+  const graphMap = graph instanceof Map ? graph : new Map(Object.entries(graph));
+  const metaMap = meta instanceof Map ? meta : new Map(Object.entries(meta || {}));
 
-    graphologyGraph.addEdge("a", "b", { size: 3, color: "#ff4343ff", curved: true });
-    graphologyGraph.addEdge("b", "c", { size: 3 });
-    graphologyGraph.addEdge("b", "d", { size: 3 });
-    graphologyGraph.addEdge("c", "b", { size: 3 });
-    graphologyGraph.addEdge("c", "e", { size: 3 });
-    graphologyGraph.addEdge("d", "c", { size: 3 });
-    graphologyGraph.addEdge("d", "e", { size: 3 });
-    graphologyGraph.addEdge("e", "d", { size: 3 });
-    graphologyGraph.addEdge("f", "e", { size: 3 });
+  // need 2 algos
+  // one for location of edges -> based on dfs
+  // one for color of edges -> based on x value
 
-    return graphologyGraph;
+  const locs = getLocs("root", graphMap);
+  console.log("locs", locs);
+
+  // Graph data
+  // Node: {id, x, y, size, label, color}
+  // Edge: {id, src-id, tgt-id, size, color, curved}
+
+  for (let [nodeId, contents] of metaMap.entries()) {
+    const loc = locs.get(nodeId);
+    if (!loc) continue;
+    graphologyGraph.addNode(nodeId, {
+      x: loc.x,
+      y: -loc.y,
+      size: 5,
+      label: contents?.content ?? "",
+      color: "#ae80fcaa",
+    });
+  }
+
+  for (let [src, children] of graphMap.entries()) {
+    for (let tgt of children) {
+      const srcx = locs.get(src)?.x;
+      const tgtx = locs.get(tgt)?.x;
+      const isCurved = srcx !== undefined && tgtx !== undefined && srcx !== tgtx;
+      graphologyGraph.addEdge(src.toString(), tgt.toString(), {
+        size: 3,
+        color: "#63b6fecb",
+        curved: isCurved,
+      });
+    }
+  }
+
+  return graphologyGraph;
 }
 
 export default function Popup() {
@@ -113,8 +134,6 @@ export default function Popup() {
     }
     // destructure everything from payload
     const { success, nodeCount, metaCount, graph, meta } = payload;
-    console.log("BUILD_TREE success:", graph);
-    console.log("BUILD meta success:", meta);
     setGraphologyGraph(getGraphologyGraph(graph, meta));
 
     setTreeMessage(
