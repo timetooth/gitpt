@@ -1,4 +1,5 @@
 import { useState } from "react";
+import GraphDemo from "./GraphDemo";
 
 function getContentScriptFiles() {
   const manifest = chrome.runtime.getManifest();
@@ -60,140 +61,12 @@ function sendMessageToActiveTab(message) {
   });
 }
 
-function countArticlesWithScripting() {
-  return new Promise((resolve) => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const tabId = tabs?.[0]?.id;
-      if (!tabId) {
-        resolve({ error: "No active tab found." });
-        return;
-      }
-
-      chrome.scripting.executeScript(
-        {
-          target: { tabId, allFrames: true },
-          func: () => document.querySelectorAll("article").length,
-        },
-        (injections) => {
-          const lastError = chrome.runtime.lastError;
-          if (lastError) {
-            console.warn("Scripting injection failed:", lastError);
-            resolve({ error: lastError.message });
-            return;
-          }
-
-          if (!injections?.length) {
-            resolve({ error: "No accessible frames to count articles." });
-            return;
-          }
-
-          const total = injections.reduce((sum, injection) => {
-            return typeof injection?.result === "number" ? sum + injection.result : sum;
-          }, 0);
-
-          resolve({ count: total });
-        }
-      );
-    });
-  });
-}
-
-function logArticlesWithScripting() {
-  return new Promise((resolve) => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const tabId = tabs?.[0]?.id;
-      if (!tabId) {
-        resolve({ error: "No active tab found." });
-        return;
-      }
-
-      chrome.scripting.executeScript(
-        {
-          target: { tabId, allFrames: true },
-          func: () => {
-            const articles = Array.from(document.querySelectorAll("article"));
-            articles.forEach((article, index) => {
-              const text = (article.innerText || "").trim();
-              console.log(`[Article ${index + 1}] ${text}`);
-            });
-            return articles.length;
-          },
-        },
-        (injections) => {
-          const lastError = chrome.runtime.lastError;
-          if (lastError) {
-            console.warn("Log injection failed:", lastError);
-            resolve({ error: lastError.message });
-            return;
-          }
-
-          if (!injections?.length) {
-            resolve({ error: "No accessible frames to log articles." });
-            return;
-          }
-
-          const total = injections.reduce((sum, injection) => {
-            return typeof injection?.result === "number" ? sum + injection.result : sum;
-          }, 0);
-
-          resolve({ count: total });
-        }
-      );
-    });
-  });
-}
-
 export default function Popup() {
-  const [articleCount, setArticleCount] = useState(null);
-  const [logMessage, setLogMessage] = useState("");
   const [siblingNodeId, setSiblingNodeId] = useState("");
   const [siblingMessage, setSiblingMessage] = useState("");
   const [treeMessage, setTreeMessage] = useState("");
   const [currentNodeId, setCurrentNodeId] = useState("");
   const [currentContentMessage, setCurrentContentMessage] = useState("");
-
-  const handleCountArticles = async () => {
-    setLogMessage("");
-    const res = await sendMessageToActiveTab({ type: "GET_ARTICLE_COUNT" });
-    if (typeof res?.data?.count === "number") {
-      setArticleCount(res.data.count);
-      return;
-    }
-
-    const fallbackCount = await countArticlesWithScripting();
-    if (typeof fallbackCount?.count === "number") {
-      setArticleCount(fallbackCount.count);
-      return;
-    }
-
-    setArticleCount(0);
-    setLogMessage(
-      fallbackCount?.error || res?.error || "Could not read articles on this page. Check site access or reload."
-    );
-  };
-
-  const handleLogArticles = async () => {
-    setLogMessage("");
-    const res = await sendMessageToActiveTab({ type: "LOG_ARTICLE_TEXTS" });
-    if (typeof res?.data?.count === "number") {
-      setLogMessage(
-        `Printed ${res.data.count} article${res.data.count === 1 ? "" : "s"} to the console.`
-      );
-      return;
-    }
-
-    const fallback = await logArticlesWithScripting();
-    if (typeof fallback?.count === "number") {
-      setLogMessage(
-        `Printed ${fallback.count} article${fallback.count === 1 ? "" : "s"} to the console.`
-      );
-      return;
-    }
-
-    setLogMessage(
-      fallback?.error || res?.error || "Could not read articles on this page."
-    );
-  };
 
   const handleGetSibling = async () => {
     setSiblingMessage("");
@@ -285,22 +158,16 @@ export default function Popup() {
   };
 
   return (
-    <div style={{ padding: 12, width: 240 }}>
-      <h3>Article Tools</h3>
-
-      <button onClick={handleCountArticles} style={{ marginBottom: 8 }}>
-        Count article tags
-      </button>
-      <p>
-        {articleCount === null
-          ? "Click the button to count <article> tags on the page."
-          : `Article tags found: ${articleCount}`}
+    <div style={{ padding: 12, width: 380, maxWidth: 440 }}>
+      <h3 style={{ marginBottom: 6 }}>Graph demo</h3>
+      <p style={{ marginTop: 0, color: "#4b5563" }}>
+        Hardcoded Sigma graph with straight, curved, and double arrows. Use the selector to toggle arrow heads.
       </p>
+      <GraphDemo />
 
-      <button onClick={handleLogArticles} style={{ marginBottom: 8 }}>
-        Log article text to console
-      </button>
-      {logMessage && <p>{logMessage}</p>}
+      <hr style={{ margin: "16px 0" }} />
+
+      <h3>Article Tools</h3>
 
       <div style={{ display: "flex", gap: 6, marginTop: 12 }}>
         <input
