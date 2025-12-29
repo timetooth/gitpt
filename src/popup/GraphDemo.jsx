@@ -1,36 +1,17 @@
-import { useEffect, useRef, useState } from "react";
-import EdgeCurveProgram, { EdgeCurvedArrowProgram } from "@sigma/edge-curve";
-import { MultiGraph } from "graphology";
+import { useEffect, useRef } from "react";
+import { EdgeCurvedArrowProgram } from "@sigma/edge-curve";
 import Sigma from "sigma";
 import { EdgeArrowProgram } from "sigma/rendering";
 
-export default function GraphDemo() {
+export default function GraphDemo({ graph }) {
   const containerRef = useRef(null);
-  const [graph, setGraph] = useState(null);
+  const rendererRef = useRef(null);
 
   useEffect(() => {
-    if (!containerRef.current) return undefined;
+    if (!containerRef.current || !graph) return undefined;
 
-    const demoGraph = new MultiGraph();
-
-    demoGraph.addNode("a", { x: 0, y: 0, size: 5, label: "Alexandra", color: "#8843ffff" });
-    demoGraph.addNode("b", { x: 1, y: -1, size: 5, label: "Bastian" });
-    demoGraph.addNode("c", { x: 3, y: -2, size: 5, label: "Charles" });
-    demoGraph.addNode("d", { x: 1, y: -3, size: 5, label: "Dorothea" });
-    demoGraph.addNode("e", { x: 3, y: -4, size: 5, label: "Ernestine" });
-    demoGraph.addNode("f", { x: 4, y: -5, size: 5, label: "Fabian" });
-
-    demoGraph.addEdge("a", "b", { size: 3, color: "#ff4343ff", curved: true });
-    demoGraph.addEdge("b", "c", { size: 3 });
-    demoGraph.addEdge("b", "d", { size: 3 });
-    demoGraph.addEdge("c", "b", { size: 3 });
-    demoGraph.addEdge("c", "e", { size: 3 });
-    demoGraph.addEdge("d", "c", { size: 3 });
-    demoGraph.addEdge("d", "e", { size: 3 });
-    demoGraph.addEdge("e", "d", { size: 3 });
-    demoGraph.addEdge("f", "e", { size: 3 });
-
-    const renderer = new Sigma(demoGraph, containerRef.current, {
+    // Recreate the renderer whenever the graph instance changes so Sigma sees updates.
+    const renderer = new Sigma(graph, containerRef.current, {
       allowInvalidContainer: true,
       defaultEdgeType: "straightArrow",
       renderEdgeLabels: true,
@@ -39,14 +20,13 @@ export default function GraphDemo() {
         curvedArrow: EdgeCurvedArrowProgram,
       },
     });
-
-    setGraph(demoGraph);
+    rendererRef.current = renderer;
 
     return () => {
       renderer.kill();
-      setGraph(null);
+      rendererRef.current = null;
     };
-  }, []);
+  }, [graph]);
 
   useEffect(() => {
     if (!graph) return;
