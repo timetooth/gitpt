@@ -30,10 +30,27 @@ function getLocs(root, graphLike) {
   return loc;
 }
 
+function dfsPath(nodeId, target, graph, path) {
+  path.push(nodeId);
+  if (nodeId === target) return true;
+
+  for (const child of (graph.get(nodeId) || [])) {
+    if (dfsPath(child, target, graph, path)) return true;
+  }
+
+  path.pop();
+  return false;
+}
+
+function getPath(target, graph) {
+  const path = [];
+  return dfsPath("root", target, graph, path) ? path : null;
+}
+
 // const graph = new Map([ ["root", [1]],[1, [2]],[2, [3, 4, 5]],
 //   [3, [6]],[4, [7]],[5, [8]],[6, [9, 10]],[7, []],[8, [11, 12, 13]],
 //   [9, []],[10, []],[11, []],[12, []],[13, []] ]);
-// const loc = getLocs("root", graph);
-// console.log(loc);
+// const pathfinal = getPath(10, graph);
+// console.log(pathfinal);
 
-export { getLocs };
+export { getLocs, getPath };
