@@ -23,22 +23,22 @@ export default function GraphDemo() {
 
     const demoGraph = new MultiGraph();
 
-    demoGraph.addNode("a", { x: 0, y: 0, size: 10, label: "Alexandra" });
-    demoGraph.addNode("b", { x: 1, y: -1, size: 20, label: "Bastian" });
-    demoGraph.addNode("c", { x: 3, y: -2, size: 10, label: "Charles" });
-    demoGraph.addNode("d", { x: 1, y: -3, size: 10, label: "Dorothea" });
-    demoGraph.addNode("e", { x: 3, y: -4, size: 20, label: "Ernestine" });
-    demoGraph.addNode("f", { x: 4, y: -5, size: 10, label: "Fabian" });
+    demoGraph.addNode("a", { x: 0, y: 0, size: 5, label: "Alexandra" });
+    demoGraph.addNode("b", { x: 1, y: -1, size: 5, label: "Bastian" });
+    demoGraph.addNode("c", { x: 3, y: -2, size: 5, label: "Charles" });
+    demoGraph.addNode("d", { x: 1, y: -3, size: 5, label: "Dorothea" });
+    demoGraph.addNode("e", { x: 3, y: -4, size: 5, label: "Ernestine" });
+    demoGraph.addNode("f", { x: 4, y: -5, size: 5, label: "Fabian" });
 
-    demoGraph.addEdge("a", "b", { size: 5 });
-    demoGraph.addEdge("b", "c", { size: 6, curved: true });
-    demoGraph.addEdge("b", "d", { size: 5 });
-    demoGraph.addEdge("c", "b", { size: 5, curved: true });
-    demoGraph.addEdge("c", "e", { size: 9 });
-    demoGraph.addEdge("d", "c", { size: 5, curved: true });
-    demoGraph.addEdge("d", "e", { size: 5, curved: true });
-    demoGraph.addEdge("e", "d", { size: 4, curved: true });
-    demoGraph.addEdge("f", "e", { size: 7, curved: true });
+    demoGraph.addEdge("a", "b", { size: 3 });
+    demoGraph.addEdge("b", "c", { size: 3 });
+    demoGraph.addEdge("b", "d", { size: 3 });
+    demoGraph.addEdge("c", "b", { size: 3 });
+    demoGraph.addEdge("c", "e", { size: 3 });
+    demoGraph.addEdge("d", "c", { size: 3 });
+    demoGraph.addEdge("d", "e", { size: 3 });
+    demoGraph.addEdge("e", "d", { size: 3 });
+    demoGraph.addEdge("f", "e", { size: 3 });
 
     const renderer = new Sigma(demoGraph, containerRef.current, {
       allowInvalidContainer: true,

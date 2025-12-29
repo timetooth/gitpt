@@ -1,52 +1,6 @@
 import { getSibling, getNext, getCurrentContent, buildTree } from "./adj";
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type === "GET_SIBLING") {
-    (async () => {
-      const nodeId = typeof request.nodeId === "string" ? request.nodeId.trim() : "";
-      if (!nodeId) {
-        sendResponse({ success: false, error: "nodeId is required" });
-        return;
-      }
-
-      try {
-        const child = getNext(nodeId);
-        if (!child) {
-          sendResponse({ success: false, error: `No child found for "${nodeId}".` });
-          return;
-        }
-
-        const sibling = await getSibling(child, nodeId);
-        sendResponse({
-          success: true,
-          siblingFound: !!sibling,
-          siblingId: sibling?.getAttribute("data-turn-id") || null
-        });
-      } catch (err) {
-        console.error("GET_SIBLING failed", err);
-        sendResponse({ success: false, error: err?.message || "Failed to get sibling." });
-      }
-    })();
-    return true; // keep the message channel open for async work
-  }
-
-  if (request.type === "GET_CURRENT_CONTENT") {
-    try {
-      const nodeId = typeof request.nodeId === "string" ? request.nodeId.trim() : null;
-      const content = getCurrentContent(nodeId || null);
-      sendResponse({ success: true, content });
-    } catch (err) {
-      console.error("GET_CURRENT_CONTENT failed", err);
-      sendResponse({ success: false, error: err?.message || "Failed to get current content." });
-    }
-    return;
-  }
-
-  if (request.type === "GET_PARAGRAPH_COUNT") {
-    const paragraphs = document.querySelectorAll("p");
-    sendResponse({ count: paragraphs.length });
-  }
-
   if (request.type === "BUILD_TREE") {
     (async () => {
       try {
