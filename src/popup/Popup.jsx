@@ -68,6 +68,8 @@ function getGraphologyGraph(graph = null, meta = null) {
 
   if (!graph) return graphologyGraph;
 
+  const THREAD_COLORS = ["#ae80fc", "#63b6fe", "#ffb347", "#6bd28c", "#f57ba2"];
+  const xOffset = -0.6; // nudge everything left so the main thread starts slightly offset
   const graphMap = graph instanceof Map ? graph : new Map(Object.entries(graph));
   const metaMap = meta instanceof Map ? meta : new Map(Object.entries(meta || {}));
 
@@ -76,7 +78,12 @@ function getGraphologyGraph(graph = null, meta = null) {
   // one for color of edges -> based on x value
 
   const locs = getLocs("root", graphMap);
-  console.log("locs", locs);
+  const pickColor = (nodeId) => {
+    const loc = locs.get(nodeId);
+    if (!loc) return THREAD_COLORS[0];
+    const idx = Math.abs(Math.round(loc.x)) % THREAD_COLORS.length;
+    return THREAD_COLORS[idx];
+  };
 
   // Graph data
   // Node: {id, x, y, size, label, color}
@@ -86,22 +93,25 @@ function getGraphologyGraph(graph = null, meta = null) {
     const loc = locs.get(nodeId);
     if (!loc) continue;
     graphologyGraph.addNode(nodeId, {
-      x: loc.x,
+      x: loc.x + xOffset,
       y: -loc.y,
-      size: 5,
+      size: 6,
       label: contents?.content ?? "",
-      color: "#ae80fcaa",
+      color: pickColor(nodeId),
     });
   }
 
   for (let [src, children] of graphMap.entries()) {
     for (let tgt of children) {
-      const srcx = locs.get(src)?.x;
-      const tgtx = locs.get(tgt)?.x;
-      const isCurved = srcx !== undefined && tgtx !== undefined && srcx !== tgtx;
+      const srcLoc = locs.get(src);
+      const tgtLoc = locs.get(tgt);
+      if (!srcLoc || !tgtLoc) continue;
+      const isCurved = srcLoc.x !== tgtLoc.x;
+      // Color edges by the child so transitions into a thread pick up that thread's color.
+      const color = pickColor(tgt);
       graphologyGraph.addEdge(src.toString(), tgt.toString(), {
         size: 3,
-        color: "#63b6fecb",
+        color,
         curved: isCurved,
       });
     }
