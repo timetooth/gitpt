@@ -29,7 +29,8 @@ function sendMessageToActiveTab(message) {
 
           const missingReceiver =
             lastError.message?.includes("Could not establish connection") ||
-            lastError.message?.includes("Receiving end does not exist");
+            lastError.message?.includes("Receiving end does not exist") ||
+            lastError.message?.includes("The message port closed before a response was received");
 
           if (!allowInject || !missingReceiver) {
             console.warn("Message failed:", lastError);
@@ -123,6 +124,8 @@ function getGraphologyGraph(graph = null, meta = null) {
 
 export default function Popup() {
   const [treeMessage, setTreeMessage] = useState("");
+  const [goTargetId, setGoTargetId] = useState("");
+  const [goMessage, setGoMessage] = useState("");
   const [graphologyGraph, setGraphologyGraph] = useState(getGraphologyGraph());
   
   const handleBuildTree = async () => {
@@ -152,6 +155,34 @@ export default function Popup() {
     );
   };
 
+  const handleGoToNode = async () => {
+    const targetId = goTargetId.trim();
+    if (!targetId) {
+      setGoMessage("Enter a node id to navigate.");
+      return;
+    }
+
+    setGoMessage("Navigating...");
+    const res = await sendMessageToActiveTab({ type: "GO_TO_NODE", targetId });
+    if (res?.error) {
+      setGoMessage(res.error);
+      return;
+    }
+
+    const payload = res?.data;
+    if (!payload) {
+      setGoMessage("No response from content script.");
+      return;
+    }
+
+    if (!payload.success) {
+      setGoMessage(payload.error || "Failed to navigate.");
+      return;
+    }
+
+    setGoMessage(`Moved to ${targetId}`);
+  };
+
   return (
     <div style={{ padding: 12, width: 380, maxWidth: 440 }}>
 
@@ -170,6 +201,20 @@ export default function Popup() {
         Hardcoded Sigma graph using single-sided arrows.
       </p>
       <GraphDemo graph={graphologyGraph} />
+
+      {/* Go To Node */}
+      <h3 style={{ marginBottom: 6 }}>Go To Node</h3>
+      <input
+        type="text"
+        placeholder="Node ID"
+        value={goTargetId}
+        onChange={(e) => setGoTargetId(e.target.value)}
+        style={{ width: "100%", padding: 6, boxSizing: "border-box", marginBottom: 8 }}
+      />
+      <button style={{ width: "100%" }} onClick={handleGoToNode}>
+        Go
+      </button>
+      {goMessage && <p style={{ marginTop: 6 }}>{goMessage}</p>}
 
     </div>
   );

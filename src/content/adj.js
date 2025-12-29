@@ -172,4 +172,53 @@ async function buildTree() {
   return { graph, meta };
 }
 
-export { getNext, hasSibling, getSibling, getCurrentContent, buildTree, resetNext };
+function dfsPath(nodeId, target, graph, path) {
+  path.push(nodeId);
+  if (nodeId === target) return true;
+
+  for (const child of (graph.get(nodeId) || [])) {
+    if (dfsPath(child, target, graph, path)) return true;
+  }
+
+  path.pop();
+  return false;
+}
+
+function getPath(target, graph) {
+  const path = [];
+  return dfsPath("root", target, graph, path) ? path : null;
+}
+
+async function goToDfs(path) {
+  if (!path || path.length <= 1) return; // need at least [current, next]
+
+  const nodeId = path.shift();       // current
+  const nextId = path[0];            // desired child
+
+  await resetNext(nodeId);
+
+  let nextNode = getNext(nodeId);
+  if (!nextNode) return;
+
+  while (nextNode.getAttribute("data-turn-id") !== nextId) {
+    if (!hasSibling(nextNode)) return; // can't move to more variants
+    nextNode = await getSibling(nextNode, nodeId);
+    if (!nextNode) return;
+  }
+
+  // now UI is aligned at nodeId -> nextId, continue down
+  await goToDfs(path);
+}
+
+async function goToNode(targetId, graph) {
+  const path = getPath(targetId, graph);
+  if (!path) return null;
+
+  // Ensure path starts with root
+  if (path[0] !== "root") path.unshift("root");
+
+  await goToDfs(path);
+  return path; // optional: return the traversed path
+}
+
+export { getNext, hasSibling, getSibling, getCurrentContent, buildTree, resetNext, goToNode };
