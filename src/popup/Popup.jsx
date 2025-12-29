@@ -94,6 +94,7 @@ export default function Popup() {
       <p style={{ marginTop: 0, color: "#4b5563" }}>
         Hardcoded Sigma graph with straight and curved edges using single-sided arrows.
       </p>
+
       <GraphDemo />
 
       <hr style={{ margin: "16px 0" }} />
