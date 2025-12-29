@@ -93,12 +93,18 @@ function getGraphologyGraph(graph = null, meta = null) {
   for (let [nodeId, contents] of metaMap.entries()) {
     const loc = locs.get(nodeId);
     if (!loc) continue;
+    const baseLabel =
+      nodeId === "root"
+        ? "GitPT"
+        : typeof contents?.content === "string"
+          ? contents.content.substring(10)
+          : "";
     graphologyGraph.addNode(nodeId, {
       x: loc.x + xOffset,
       y: -loc.y,
       size: 6,
       label: "", // hide by default; actual text stored separately for hover
-      hoverLabel: contents?.content.substring(10) ?? "",
+      hoverLabel: baseLabel,
       color: pickColor(nodeId),
     });
   }
