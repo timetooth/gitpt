@@ -189,6 +189,24 @@ function getPath(target, graph) {
   return dfsPath("root", target, graph, path) ? path : null;
 }
 
+async function scrollToArticle(nodeId, timeoutMs = 2000) {
+  if (!nodeId) return;
+  if (nodeId === "root") {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const article = getCurrent(nodeId);
+    if (article) {
+      article.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    await sleep(50);
+  }
+}
+
 async function goToDfs(path) {
   if (!path || path.length <= 1) return; // need at least [current, next]
 
@@ -218,6 +236,7 @@ async function goToNode(targetId, graph) {
   if (path[0] !== "root") path.unshift("root");
 
   await goToDfs(path);
+  await scrollToArticle(targetId);
   return path; // optional: return the traversed path
 }
 
