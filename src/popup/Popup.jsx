@@ -160,6 +160,30 @@ export default function Popup() {
     );
   };
 
+  const handleLoadCachedTree = async () => {
+    setTreeMessage("");
+    const res = await sendMessageToActiveTab({ type: "LOAD_TREE" });
+    if (res?.error) {
+      setTreeMessage(res.error);
+      return;
+    }
+
+    const payload = res?.data;
+    if (!payload) {
+      setTreeMessage("No response from content script.");
+      return;
+    }
+
+    if (!payload.success) {
+      setTreeMessage(payload.error || "Failed to load cached tree.");
+      return;
+    }
+
+    const { graph, meta } = payload;
+    setGraphologyGraph(getGraphologyGraph(graph, meta));
+    setTreeMessage("Loaded cached tree.");
+  };
+
   const handleNodeClick = async (nodeId) => {
     if (!nodeId) return;
     setNavMessage(`Navigating to ${nodeId}...`);
@@ -190,6 +214,9 @@ export default function Popup() {
       <h3>Build Tree Button</h3>
       <button onClick={handleBuildTree} style={{ marginTop: 8 }}>
         Build tree button
+      </button>
+      <button onClick={handleLoadCachedTree} style={{ marginTop: 8, marginLeft: 8 }}>
+        Load cached tree
       </button>
       {treeMessage && <p>{treeMessage}</p>}
 
