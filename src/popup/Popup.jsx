@@ -156,7 +156,7 @@ export default function Popup() {
     setGraphologyGraph(getGraphologyGraph(graph, meta));
 
     setTreeMessage(
-      `buildTree ran. Nodes: ${payload.nodeCount ?? "unknown"}, meta entries: ${payload.metaCount ?? "unknown"}. Check console for details.`
+      `buildTree ran. Nodes: ${payload.nodeCount ?? "unknown"}, meta entries: ${payload.metaCount ?? "unknown"}.`
     );
   };
 
@@ -182,6 +182,30 @@ export default function Popup() {
     const { graph, meta } = payload;
     setGraphologyGraph(getGraphologyGraph(graph, meta));
     setTreeMessage("Loaded cached tree.");
+  };
+
+  const handleClearCache = async () => {
+    setTreeMessage("");
+    setGraphologyGraph(getGraphologyGraph()); // reset to empty graph
+
+    const res = await sendMessageToActiveTab({ type: "CLEAR_TREE" });
+    if (res?.error) {
+      setTreeMessage(res.error);
+      return;
+    }
+
+    const payload = res?.data;
+    if (!payload) {
+      setTreeMessage("No response from content script.");
+      return;
+    }
+
+    if (!payload.success) {
+      setTreeMessage(payload.error || "Failed to clear cached tree.");
+      return;
+    }
+
+    setTreeMessage("Cleared cached tree for this page.");
   };
 
   const handleNodeClick = async (nodeId) => {
@@ -211,12 +235,15 @@ export default function Popup() {
     <div style={{ padding: 12, width: 380, maxWidth: 440 }}>
 
       {/* Build Tree Button */}
-      <h3>Build Tree Button</h3>
+      <h3>Build Tree</h3>
       <button onClick={handleBuildTree} style={{ marginTop: 8 }}>
-        Build tree button
+        Refresh tree
       </button>
       <button onClick={handleLoadCachedTree} style={{ marginTop: 8, marginLeft: 8 }}>
         Load cached tree
+      </button>
+      <button onClick={handleClearCache} style={{ marginTop: 8, marginLeft: 8 }}>
+        Clear cached tree
       </button>
       {treeMessage && <p>{treeMessage}</p>}
 

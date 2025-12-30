@@ -86,6 +86,29 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // keep channel open for async work
   }
 
+  else if (request.type === "CLEAR_TREE") {
+    try {
+      const cacheKey = getCacheKeyForPage();
+      if (!cacheKey) {
+        sendResponse({ success: false, error: "Could not compute cache key for this page." });
+        return true;
+      }
+
+      chrome.storage.local.remove([cacheKey], () => {
+        const storageErr = chrome.runtime.lastError;
+        if (storageErr) {
+          sendResponse({ success: false, error: storageErr.message || "Failed to clear cached tree." });
+          return;
+        }
+        sendResponse({ success: true, cacheKey });
+      });
+    } catch (err) {
+      console.error("CLEAR_TREE failed", err);
+      sendResponse({ success: false, error: err?.message || "Failed to clear cached tree." });
+    }
+    return true; // keep channel open for async work
+  }
+
   else if (request.type === "GO_TO_NODE") {
     (async () => {
       try {
