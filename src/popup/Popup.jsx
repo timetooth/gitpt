@@ -133,6 +133,74 @@ export default function Popup() {
   const [navMessage, setNavMessage] = useState("");
   const [graphologyGraph, setGraphologyGraph] = useState(getGraphologyGraph());
   
+  const surfaceStyle = {
+    padding: 2,
+    width: 380,
+    maxWidth: 440,
+    background: "linear-gradient(180deg, #fdfdff 0%, #f4f6fb 100%)",
+    borderRadius: 14,
+    boxShadow: "0 10px 35px rgba(15, 23, 42, 0.08)",
+    color: "#1f2937",
+    fontFamily: "Poppins, 'Helvetica Neue', Helvetica, Arial, sans-serif",
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+  };
+
+  const sectionStyle = {
+    background: "#ffffff",
+    borderRadius: 12,
+    padding: 8,
+    border: "1px solid #e5e7eb",
+    boxShadow: "0 4px 15px rgba(0, 0, 0, 0.04)",
+  };
+
+  const titleRowStyle = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    marginBottom: 8,
+  };
+
+  const labelStyle = {
+    margin: 0,
+    fontSize: 14,
+    letterSpacing: 0.25,
+    textTransform: "uppercase",
+    color: "#475569",
+  };
+
+  const hintStyle = { margin: 0, fontSize: 12, color: "#6b7280", textAlign: "right" };
+
+  const buttonRowStyle = {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+    justifyContent: "space-between",
+  };
+
+  const baseButtonStyle = {
+    flex: 1,
+    minWidth: 100,
+    padding: "10px 12px",
+    borderRadius: 10,
+    border: "1px solid #e5e7eb",
+    background: "#ffffff",
+    color: "#111827",
+    fontWeight: 600,
+    fontSize: 13,
+    cursor: "pointer",
+    transition: "transform 120ms ease, box-shadow 120ms ease, background 120ms ease",
+    boxShadow: "0 2px 6px rgba(15, 23, 42, 0.06)",
+    transform: "translateY(0)",
+  };
+
+  const buttonHover = { transform: "translateY(-1px)", boxShadow: "0 6px 14px rgba(15, 23, 42, 0.12)" };
+  const primaryButtonStyle = { background: "linear-gradient(135deg, #111827, #1f2937)", color: "#f9fafb", border: "1px solid #0f172a" };
+  const quietButtonStyle = { background: "#f8fafc", color: "#0f172a" };
+  const dangerButtonStyle = { background: "#fff3f3", color: "#b91c1c", border: "1px solid #fecdd3" };
+
   const handleBuildTree = async () => {
     setTreeMessage("");
     const res = await sendMessageToActiveTab({ type: "BUILD_TREE" });
@@ -232,28 +300,52 @@ export default function Popup() {
   };
 
   return (
-    <div style={{ padding: 12, width: 380, maxWidth: 440 }}>
+    <div style={surfaceStyle}>
+      <div style={sectionStyle}>
+        <div style={titleRowStyle}>
+          <h3 style={labelStyle}>Build Tree</h3>
+          <p style={hintStyle}>Refresh or reuse the cached map.</p>
+        </div>
+        <div style={buttonRowStyle}>
+          <button
+            type="button"
+            onClick={handleBuildTree}
+            style={{ ...baseButtonStyle, ...primaryButtonStyle }}
+            onMouseEnter={(e) => Object.assign(e.currentTarget.style, buttonHover)}
+            onMouseLeave={(e) => Object.assign(e.currentTarget.style, baseButtonStyle, primaryButtonStyle)}
+          >
+            Refresh tree
+          </button>
+          <button
+            type="button"
+            onClick={handleLoadCachedTree}
+            style={{ ...baseButtonStyle, ...quietButtonStyle }}
+            onMouseEnter={(e) => Object.assign(e.currentTarget.style, buttonHover)}
+            onMouseLeave={(e) => Object.assign(e.currentTarget.style, baseButtonStyle, quietButtonStyle)}
+          >
+            Load cached
+          </button>
+          <button
+            type="button"
+            onClick={handleClearCache}
+            style={{ ...baseButtonStyle, ...dangerButtonStyle }}
+            onMouseEnter={(e) => Object.assign(e.currentTarget.style, buttonHover)}
+            onMouseLeave={(e) => Object.assign(e.currentTarget.style, baseButtonStyle, dangerButtonStyle)}
+          >
+            Clear cache
+          </button>
+        </div>
+        {treeMessage && <p style={{ margin: "8px 0 0", color: "#334155", fontSize: 13 }}>{treeMessage}</p>}
+      </div>
 
-      {/* Build Tree Button */}
-      <h3>Build Tree</h3>
-      <button onClick={handleBuildTree} style={{ marginTop: 8 }}>
-        Refresh tree
-      </button>
-      <button onClick={handleLoadCachedTree} style={{ marginTop: 8, marginLeft: 8 }}>
-        Load cached tree
-      </button>
-      <button onClick={handleClearCache} style={{ marginTop: 8, marginLeft: 8 }}>
-        Clear cached tree
-      </button>
-      {treeMessage && <p>{treeMessage}</p>}
-
-      <hr style={{ margin: "16px 0" }} />
-
-      {/* Demo Graph */}
-      <h3 style={{ marginBottom: 6 }}>Conversation Flow</h3>
-      <GraphDemo graph={graphologyGraph} onNodeClick={handleNodeClick} />
-      {navMessage && <p style={{ marginTop: 8 }}>{navMessage}</p>}
-
+      <div style={sectionStyle}>
+        <div style={titleRowStyle}>
+          <h3 style={labelStyle}>Conversation Flow</h3>
+          <p style={hintStyle}>Tap a node to jump back.</p>
+        </div>
+        <GraphDemo graph={graphologyGraph} onNodeClick={handleNodeClick} />
+        {navMessage && <p style={{ marginTop: 10, color: "#475569", fontSize: 13 }}>{navMessage}</p>}
+      </div>
     </div>
   );
 }
