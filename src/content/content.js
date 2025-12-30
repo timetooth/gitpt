@@ -109,6 +109,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // keep channel open for async work
   }
 
+  else if (request.type === "ADD_PROMPT") {
+    (async () => {
+      try {
+        const ok = setPromptOnPage(request.prompt);
+        if (!ok) {
+          sendResponse({ ok: false, error: "Could not find the prompt input on this page." });
+          return;
+        }
+        sendResponse({ ok: true });
+      } catch (err) {
+        console.error("Failed to insert prompt", err);
+        sendResponse({ ok: false, error: err.message });
+      }
+    })();
+    return true;
+  }
+
   else if (request.type === "GO_TO_NODE") {
     (async () => {
       try {
@@ -137,3 +154,51 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // keep channel open for async work
   }
 });
+
+function setPromptOnPage(prompt) {
+  if (!prompt) return false;
+
+  const editable =
+    document.querySelector("div#prompt-textarea[contenteditable='true']") ||
+    document.querySelector("div.ProseMirror[contenteditable='true']");
+
+  if (editable) {
+    editable.focus({ preventScroll: true });
+    editable.innerHTML = "";
+
+    const paragraph = document.createElement("p");
+    paragraph.textContent = prompt;
+    const trailingBreak = document.createElement("br");
+    trailingBreak.className = "ProseMirror-trailingBreak";
+    paragraph.appendChild(trailingBreak);
+    editable.appendChild(paragraph);
+
+    const range = document.createRange();
+    range.selectNodeContents(editable);
+    range.collapse(false);
+    const selection = window.getSelection();
+    if (selection) {
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+
+    const inputEvent = new InputEvent("input", {
+      data: prompt,
+      inputType: "insertText",
+      bubbles: true,
+      cancelable: true,
+    });
+    editable.dispatchEvent(inputEvent);
+    return true;
+  }
+
+  const fallback = document.querySelector("textarea[name='prompt-textarea']");
+  if (fallback) {
+    fallback.focus({ preventScroll: true });
+    fallback.value = prompt;
+    fallback.dispatchEvent(new Event("input", { bubbles: true }));
+    return true;
+  }
+
+  return false;
+}

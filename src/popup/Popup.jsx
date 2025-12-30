@@ -4,6 +4,7 @@ import { MultiGraph } from "graphology";
 import { VscGitMerge } from "react-icons/vsc";
 import { VscSettings } from "react-icons/vsc";
 import { getLocs } from "./graph";
+import PromptsTab from "./PromptsTab";
 
 function getContentScriptFiles() {
   const manifest = chrome.runtime.getManifest();
@@ -313,7 +314,7 @@ export default function Popup() {
 
   const handleNodeClick = async (nodeId) => {
     if (!nodeId) return;
-    setNavMessage(`Navigating to ${nodeId}...`);
+    setNavMessage("");
     const res = await sendMessageToActiveTab({ type: "GO_TO_NODE", targetId: nodeId });
     if (res?.error) {
       setNavMessage(res.error);
@@ -331,7 +332,7 @@ export default function Popup() {
       return;
     }
 
-    setNavMessage(`Moved to ${nodeId}`);
+    setNavMessage("");
   };
 
   return (
@@ -346,10 +347,10 @@ export default function Popup() {
         </button>
         <button
           type="button"
-          onClick={() => setActiveTab("blank")}
-          style={{ ...tabButtonStyle, ...(activeTab === "blank" ? tabButtonActiveStyle : {}) }}
+          onClick={() => setActiveTab("prompts")}
+          style={{ ...tabButtonStyle, ...(activeTab === "prompts" ? tabButtonActiveStyle : {}) }}
         >
-          Blank Page
+          Prompts
         </button>
       </div>
 
@@ -416,19 +417,7 @@ export default function Popup() {
           </div>
         </>
       ) : (
-        <div
-          style={{
-            ...sectionStyle,
-            minHeight: 360,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#94a3b8",
-            fontSize: 14,
-          }}
-        >
-          Blank tab for your next feature.
-        </div>
+        <PromptsTab />
       )}
     </div>
   );
