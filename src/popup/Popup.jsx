@@ -314,7 +314,7 @@ export default function Popup() {
             onMouseEnter={(e) => Object.assign(e.currentTarget.style, buttonHover)}
             onMouseLeave={(e) => Object.assign(e.currentTarget.style, baseButtonStyle, primaryButtonStyle)}
           >
-            Refresh tree
+            Refresh
           </button>
           <button
             type="button"
@@ -323,7 +323,7 @@ export default function Popup() {
             onMouseEnter={(e) => Object.assign(e.currentTarget.style, buttonHover)}
             onMouseLeave={(e) => Object.assign(e.currentTarget.style, baseButtonStyle, quietButtonStyle)}
           >
-            Load cached
+            Load
           </button>
           <button
             type="button"
@@ -332,7 +332,7 @@ export default function Popup() {
             onMouseEnter={(e) => Object.assign(e.currentTarget.style, buttonHover)}
             onMouseLeave={(e) => Object.assign(e.currentTarget.style, baseButtonStyle, dangerButtonStyle)}
           >
-            Clear cache
+            Clear
           </button>
         </div>
         {treeMessage && <p style={{ margin: "8px 0 0", color: "#334155", fontSize: 13 }}>{treeMessage}</p>}
