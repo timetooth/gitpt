@@ -134,6 +134,7 @@ export default function Popup() {
   const [treeMessage, setTreeMessage] = useState("");
   const [navMessage, setNavMessage] = useState("");
   const [graphologyGraph, setGraphologyGraph] = useState(getGraphologyGraph());
+  const [activeTab, setActiveTab] = useState("gitpt");
   
   const surfaceStyle = {
     padding: 2,
@@ -208,6 +209,30 @@ export default function Popup() {
   const primaryButtonStyle = { background: "linear-gradient(135deg, #111827, #1f2937)", color: "#f9fafb", border: "1px solid #0f172a" };
   const quietButtonStyle = { background: "#f8fafc", color: "#0f172a" };
   const dangerButtonStyle = { background: "#fff3f3", color: "#b91c1c", border: "1px solid #fecdd3" };
+  const tabBarStyle = {
+    display: "flex",
+    gap: 6,
+    background: "#e5e7eb",
+    padding: 4,
+    borderRadius: 12,
+    border: "1px solid #d1d5db",
+  };
+  const tabButtonStyle = {
+    flex: 1,
+    padding: "10px 12px",
+    borderRadius: 8,
+    border: "none",
+    background: "#f8fafc",
+    color: "#0f172a",
+    fontWeight: 600,
+    cursor: "pointer",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.6)",
+  };
+  const tabButtonActiveStyle = {
+    background: "linear-gradient(135deg, #111827, #1f2937)",
+    color: "#f8fafc",
+    boxShadow: "0 6px 14px rgba(15, 23, 42, 0.12)",
+  };
 
   const handleBuildTree = async () => {
     setTreeMessage("");
@@ -311,61 +336,100 @@ export default function Popup() {
 
   return (
     <div style={surfaceStyle}>
-      <div style={sectionStyle}>
-        <div style={titleRowStyle}>
-          <h3 style={labelStyle}>
-            <span style={labelContentStyle}>
-              <VscSettings style={{ fontSize: 18 }} />
-              Build Tree
-            </span>
-          </h3>
-          <p style={hintStyle}>Refresh or reuse the cached map.</p>
-        </div>
-        <div style={buttonRowStyle}>
-          <button
-            type="button"
-            onClick={handleBuildTree}
-            style={{ ...baseButtonStyle, ...primaryButtonStyle }}
-            onMouseEnter={(e) => Object.assign(e.currentTarget.style, buttonHover)}
-            onMouseLeave={(e) => Object.assign(e.currentTarget.style, baseButtonStyle, primaryButtonStyle)}
-          >
-            Refresh
-          </button>
-          <button
-            type="button"
-            onClick={handleLoadCachedTree}
-            style={{ ...baseButtonStyle, ...quietButtonStyle }}
-            onMouseEnter={(e) => Object.assign(e.currentTarget.style, buttonHover)}
-            onMouseLeave={(e) => Object.assign(e.currentTarget.style, baseButtonStyle, quietButtonStyle)}
-          >
-            Load
-          </button>
-          <button
-            type="button"
-            onClick={handleClearCache}
-            style={{ ...baseButtonStyle, ...dangerButtonStyle }}
-            onMouseEnter={(e) => Object.assign(e.currentTarget.style, buttonHover)}
-            onMouseLeave={(e) => Object.assign(e.currentTarget.style, baseButtonStyle, dangerButtonStyle)}
-          >
-            Clear
-          </button>
-        </div>
-        {treeMessage && <p style={{ margin: "8px 0 0", color: "#334155", fontSize: 13 }}>{treeMessage}</p>}
+      <div style={tabBarStyle}>
+        <button
+          type="button"
+          onClick={() => setActiveTab("gitpt")}
+          style={{ ...tabButtonStyle, ...(activeTab === "gitpt" ? tabButtonActiveStyle : {}) }}
+        >
+          GitPT
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("blank")}
+          style={{ ...tabButtonStyle, ...(activeTab === "blank" ? tabButtonActiveStyle : {}) }}
+        >
+          Blank Page
+        </button>
       </div>
 
-      <div style={sectionStyle}>
-        <div style={titleRowStyle}>
-          <h3 style={labelStyle}>
-            <span style={labelContentStyle}>
-              <VscGitMerge style={{ fontSize: 18 }} />
-              Conversation Flow
-            </span>
-          </h3>
-          <p style={hintStyle}>Tap a node to jump back.</p>
+      {activeTab === "gitpt" ? (
+        <>
+          <div style={sectionStyle}>
+            <div style={titleRowStyle}>
+              <h3 style={labelStyle}>
+                <span style={labelContentStyle}>
+                  <VscSettings style={{ fontSize: 18 }} />
+                  Build Tree
+                </span>
+              </h3>
+              <p style={hintStyle}>Refresh or reuse the cached map.</p>
+            </div>
+            <div style={buttonRowStyle}>
+              <button
+                type="button"
+                onClick={handleBuildTree}
+                style={{ ...baseButtonStyle, ...primaryButtonStyle }}
+                onMouseEnter={(e) => Object.assign(e.currentTarget.style, buttonHover)}
+                onMouseLeave={(e) => Object.assign(e.currentTarget.style, baseButtonStyle, primaryButtonStyle)}
+              >
+                Refresh
+              </button>
+              <button
+                type="button"
+                onClick={handleLoadCachedTree}
+                style={{ ...baseButtonStyle, ...quietButtonStyle }}
+                onMouseEnter={(e) => Object.assign(e.currentTarget.style, buttonHover)}
+                onMouseLeave={(e) => Object.assign(e.currentTarget.style, baseButtonStyle, quietButtonStyle)}
+              >
+                Load
+              </button>
+              <button
+                type="button"
+                onClick={handleClearCache}
+                style={{ ...baseButtonStyle, ...dangerButtonStyle }}
+                onMouseEnter={(e) => Object.assign(e.currentTarget.style, buttonHover)}
+                onMouseLeave={(e) => Object.assign(e.currentTarget.style, baseButtonStyle, dangerButtonStyle)}
+              >
+                Clear
+              </button>
+            </div>
+            {treeMessage && (
+              <p style={{ margin: "8px 0 0", color: "#334155", fontSize: 13, textAlign: "center" }}>{treeMessage}</p>
+            )}
+          </div>
+
+          <div style={sectionStyle}>
+            <div style={titleRowStyle}>
+              <h3 style={labelStyle}>
+                <span style={labelContentStyle}>
+                  <VscGitMerge style={{ fontSize: 18 }} />
+                  Conversation Flow
+                </span>
+              </h3>
+              <p style={hintStyle}>Tap a node to jump back.</p>
+            </div>
+            <GraphDemo graph={graphologyGraph} onNodeClick={handleNodeClick} />
+            {navMessage && (
+              <p style={{ marginTop: 10, color: "#475569", fontSize: 13, textAlign: "center" }}>{navMessage}</p>
+            )}
+          </div>
+        </>
+      ) : (
+        <div
+          style={{
+            ...sectionStyle,
+            minHeight: 360,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#94a3b8",
+            fontSize: 14,
+          }}
+        >
+          Blank tab for your next feature.
         </div>
-        <GraphDemo graph={graphologyGraph} onNodeClick={handleNodeClick} />
-        {navMessage && <p style={{ marginTop: 10, color: "#475569", fontSize: 13 }}>{navMessage}</p>}
-      </div>
+      )}
     </div>
   );
 }
