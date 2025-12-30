@@ -196,10 +196,7 @@ export default function Popup() {
       <hr style={{ margin: "16px 0" }} />
 
       {/* Demo Graph */}
-      <h3 style={{ marginBottom: 6 }}>Graph demo</h3>
-      <p style={{ marginTop: 0, color: "#4b5563" }}>
-        Hardcoded Sigma graph using single-sided arrows.
-      </p>
+      <h3 style={{ marginBottom: 6 }}>Conversation Flow</h3>
       <GraphDemo graph={graphologyGraph} onNodeClick={handleNodeClick} />
       {navMessage && <p style={{ marginTop: 8 }}>{navMessage}</p>}
 
