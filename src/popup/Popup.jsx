@@ -228,12 +228,11 @@ export default function Popup() {
       return;
     }
     // destructure everything from payload
-    const { success, nodeCount, metaCount, graph, meta } = payload;
+    const { nodeCount, graph, meta } = payload;
     setGraphologyGraph(getGraphologyGraph(graph, meta));
 
-    setTreeMessage(
-      `buildTree ran. Nodes: ${payload.nodeCount ?? "unknown"}, meta entries: ${payload.metaCount ?? "unknown"}.`
-    );
+    const bubbles = Number.isFinite(nodeCount) ? nodeCount : "unknown";
+    setTreeMessage(`Tree built with ${bubbles} bubbles mapped.`);
   };
 
   const handleLoadCachedTree = async () => {
@@ -257,7 +256,10 @@ export default function Popup() {
 
     const { graph, meta } = payload;
     setGraphologyGraph(getGraphologyGraph(graph, meta));
-    setTreeMessage("Loaded cached tree.");
+
+    const graphMap = graph instanceof Map ? graph : new Map(Object.entries(graph || {}));
+    const bubbles = Number.isFinite(graphMap.size) ? graphMap.size : "unknown";
+    setTreeMessage(`Cached tree loaded with ${bubbles} bubbles.`);
   };
 
   const handleClearCache = async () => {
@@ -281,7 +283,7 @@ export default function Popup() {
       return;
     }
 
-    setTreeMessage("Cleared cached tree for this page.");
+    setTreeMessage("Cache cleared. Build again to refresh the map.");
   };
 
   const handleNodeClick = async (nodeId) => {
