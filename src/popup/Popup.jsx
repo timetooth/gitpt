@@ -1,6 +1,8 @@
 import { useState } from "react";
 import GraphDemo from "./GraphDemo";
 import { MultiGraph } from "graphology";
+import { VscGitMerge } from "react-icons/vsc";
+import { VscSettings } from "react-icons/vsc";
 import { getLocs } from "./graph";
 
 function getContentScriptFiles() {
@@ -171,6 +173,12 @@ export default function Popup() {
     color: "#475569",
   };
 
+  const labelContentStyle = {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+  };
+
   const hintStyle = { margin: 0, fontSize: 12, color: "#6b7280", textAlign: "right" };
 
   const buttonRowStyle = {
@@ -303,7 +311,12 @@ export default function Popup() {
     <div style={surfaceStyle}>
       <div style={sectionStyle}>
         <div style={titleRowStyle}>
-          <h3 style={labelStyle}>Build Tree</h3>
+          <h3 style={labelStyle}>
+            <span style={labelContentStyle}>
+              <VscSettings style={{ fontSize: 18 }} />
+              Build Tree
+            </span>
+          </h3>
           <p style={hintStyle}>Refresh or reuse the cached map.</p>
         </div>
         <div style={buttonRowStyle}>
@@ -340,7 +353,12 @@ export default function Popup() {
 
       <div style={sectionStyle}>
         <div style={titleRowStyle}>
-          <h3 style={labelStyle}>Conversation Flow</h3>
+          <h3 style={labelStyle}>
+            <span style={labelContentStyle}>
+              <VscGitMerge style={{ fontSize: 18 }} />
+              Conversation Flow
+            </span>
+          </h3>
           <p style={hintStyle}>Tap a node to jump back.</p>
         </div>
         <GraphDemo graph={graphologyGraph} onNodeClick={handleNodeClick} />
