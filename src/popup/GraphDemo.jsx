@@ -6,6 +6,7 @@ import { EdgeArrowProgram } from "sigma/rendering";
 export default function GraphDemo({ graph, onNodeClick, onNodeDoubleClick }) {
   const containerRef = useRef(null);
   const rendererRef = useRef(null);
+  const skipClicksRef = useRef(false);
 
   useEffect(() => {
     if (!containerRef.current || !graph) return undefined;
@@ -47,9 +48,16 @@ export default function GraphDemo({ graph, onNodeClick, onNodeDoubleClick }) {
     const hideLabel = ({ node }) => {
       graph.setNodeAttribute(node, "label", "");
     };
-    const handleClick = ({ node }) => onNodeClick?.(node);
+    const handleClick = ({ node }) => {
+      if (skipClicksRef.current) return;
+      onNodeClick?.(node);
+    };
     const handleDoubleClick = ({ node, event, preventSigmaDefault }) => {
       preventSigmaDefault?.();
+      skipClicksRef.current = true;
+      setTimeout(() => {
+        skipClicksRef.current = false;
+      }, 250);
       const baseLabel = graph.getNodeAttribute(node, "baseLabel") || "";
       const specialLabel = graph.getNodeAttribute(node, "specialLabel") || "";
       onNodeDoubleClick?.({ node, baseLabel, specialLabel });

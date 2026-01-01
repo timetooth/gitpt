@@ -608,6 +608,7 @@ export default function Popup() {
                   padding: "10px 12px",
                   borderRadius: 8,
                   border: "1px solid #d1d5db",
+                  boxSizing: "border-box",
                   fontSize: 13,
                   color: "#0f172a",
                   outline: "none",
