@@ -1,5 +1,16 @@
 import { getSibling, getNext, getCurrentContent, buildTree, goToNode } from "./adj";
 
+function getConversationIdFromLocation() {
+  try {
+    const url = new URL(window.location.href);
+    const match = url.pathname.match(/\/c\/([^/?#]+)/);
+    return match ? match[1] : null;
+  } catch (err) {
+    console.warn("Unable to parse chat id from URL", err);
+    return null;
+  }
+}
+
 function getCacheKeyForPage() {
   try {
     const url = new URL(window.location.href);
@@ -153,6 +164,26 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
     })();
     return true; // keep channel open for async work
+  }
+  else if (request.type === "GET_CURRENT_CHAT") {
+    try {
+      const id = getConversationIdFromLocation();
+      const url = window.location.href;
+      if (!id) {
+        sendResponse({ success: false, error: "Not on a chat conversation page." });
+        return;
+      }
+
+      sendResponse({
+        success: true,
+        chatId: id,
+        url,
+        title: document.title || "Current chat",
+      });
+    } catch (err) {
+      console.error("GET_CURRENT_CHAT failed", err);
+      sendResponse({ success: false, error: err?.message || "Failed to read current chat." });
+    }
   }
 });
 

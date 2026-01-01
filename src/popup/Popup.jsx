@@ -5,6 +5,7 @@ import { VscGitMerge } from "react-icons/vsc";
 import { VscSettings } from "react-icons/vsc";
 import { getLocs } from "./graph";
 import PromptsTab from "./PromptsTab";
+import BookmarksTab from "./BookmarksTab";
 
 function getContentScriptFiles() {
   const manifest = chrome.runtime.getManifest();
@@ -424,7 +425,7 @@ export default function Popup() {
       return;
     }
 
-    setTreeMessage("Cache cleared. Special labels were kept; build again to refresh the map.");
+    setTreeMessage("Cache cleared. Build again to refresh the map.");
   };
 
   const handleNodeClick = async (nodeId) => {
@@ -515,6 +516,13 @@ export default function Popup() {
           style={{ ...tabButtonStyle, ...(activeTab === "prompts" ? tabButtonActiveStyle : {}) }}
         >
           Prompts
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("bookmarks")}
+          style={{ ...tabButtonStyle, ...(activeTab === "bookmarks" ? tabButtonActiveStyle : {}) }}
+        >
+          Bookmarks
         </button>
       </div>
 
@@ -647,8 +655,10 @@ export default function Popup() {
             </div>
           )}
         </>
-      ) : (
+      ) : activeTab === "prompts" ? (
         <PromptsTab />
+      ) : (
+        <BookmarksTab sendMessageToActiveTab={sendMessageToActiveTab} />
       )}
     </div>
   );
