@@ -28,6 +28,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         };
 
         const cacheKey = getCacheKeyForPage();
+        responsePayload.cacheKey = cacheKey;
         if (!cacheKey) {
           responsePayload.cacheError = "Could not compute cache key for this page.";
           sendResponse(responsePayload);

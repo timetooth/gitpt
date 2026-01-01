@@ -3,7 +3,7 @@ import { EdgeCurvedArrowProgram } from "@sigma/edge-curve";
 import Sigma from "sigma";
 import { EdgeArrowProgram } from "sigma/rendering";
 
-export default function GraphDemo({ graph, onNodeClick }) {
+export default function GraphDemo({ graph, onNodeClick, onNodeDoubleClick }) {
   const containerRef = useRef(null);
   const rendererRef = useRef(null);
 
@@ -47,20 +47,30 @@ export default function GraphDemo({ graph, onNodeClick }) {
     const hideLabel = ({ node }) => {
       graph.setNodeAttribute(node, "label", "");
     };
+    const handleClick = ({ node }) => onNodeClick?.(node);
+    const handleDoubleClick = ({ node, event, preventSigmaDefault }) => {
+      preventSigmaDefault?.();
+      const baseLabel = graph.getNodeAttribute(node, "baseLabel") || "";
+      const specialLabel = graph.getNodeAttribute(node, "specialLabel") || "";
+      onNodeDoubleClick?.({ node, baseLabel, specialLabel });
+    };
 
     renderer.on("enterNode", showLabel);
     renderer.on("leaveNode", hideLabel);
-    renderer.on("clickNode", ({ node }) => onNodeClick?.(node));
+    renderer.on("clickNode", handleClick);
+    renderer.on("doubleClickNode", handleDoubleClick);
 
     return () => {
       renderer.off?.("enterNode", showLabel);
       renderer.off?.("leaveNode", hideLabel);
-      renderer.off?.("clickNode", onNodeClick);
+      renderer.off?.("clickNode", handleClick);
+      renderer.off?.("doubleClickNode", handleDoubleClick);
       renderer.removeListener?.("enterNode", showLabel);
       renderer.removeListener?.("leaveNode", hideLabel);
-      renderer.removeListener?.("clickNode", onNodeClick);
+      renderer.removeListener?.("clickNode", handleClick);
+      renderer.removeListener?.("doubleClickNode", handleDoubleClick);
     };
-  }, [graph, onNodeClick]);
+  }, [graph, onNodeClick, onNodeDoubleClick]);
 
   return (
     <div style={{ position: "relative" }}>
