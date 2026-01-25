@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { FiSave, FiTrash2, FiRefreshCw } from "react-icons/fi";
+import { FiSave, FiTrash2, FiRefreshCw, FiArrowDown } from "react-icons/fi";
 
 const STORAGE_KEY = "historyBookmarks";
 
@@ -180,6 +180,18 @@ export default function BookmarksTab({ sendMessageToActiveTab }) {
   const headingStyle = { margin: 0, fontSize: 16, letterSpacing: 0.2, color: "#111827", display: "flex", alignItems: "center", gap: 8 };
   const subTextStyle = { margin: "4px 0 0", fontSize: 13, color: "#475569" };
   const pill = { fontSize: 11, padding: "4px 8px", borderRadius: 8, background: "#eef2ff", color: "#312e81" };
+  const chatRowStyle = { ...subTextStyle, marginBottom: 6, display: "flex", alignItems: "center", gap: 8, justifyContent: "space-between" };
+  const iconButtonStyle = {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    border: "1px solid #d1d5db",
+    background: "#f8fafc",
+    color: "#0f172a",
+  };
 
   const inputStyle = {
     width: "100%",
@@ -224,13 +236,30 @@ export default function BookmarksTab({ sendMessageToActiveTab }) {
         </div>
 
         <div style={{ marginTop: 10 }}>
-          <p style={{ ...subTextStyle, marginBottom: 6 }}>
+          <div style={chatRowStyle}>
             {currentChat?.id ? (
-              <span style={{ fontWeight: 700, color: "#0f172a" }}>{currentChat.title}</span>
+              <>
+                <span style={{ fontWeight: 700, color: "#0f172a", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {currentChat.title}
+                </span>
+                <button
+                  type="button"
+                  title="Use current chat title"
+                  style={{
+                    ...iconButtonStyle,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => {
+                    if (currentChat?.title) setInput(currentChat.title);
+                  }}
+                >
+                  <FiArrowDown size={14} />
+                </button>
+              </>
             ) : (
-              "Open a chat to enable bookmarking."
+              <span>Open a chat to enable bookmarking.</span>
             )}
-          </p>
+          </div>
           <input
             type="text"
             style={inputStyle}
@@ -261,22 +290,41 @@ export default function BookmarksTab({ sendMessageToActiveTab }) {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8, maxHeight: 220, overflowY: "auto" }}>
             {bookmarkList.map((entry) => (
-              <div key={entry.id} style={{ border: "1px solid #e5e7eb", borderRadius: 10, padding: 10, background: "#f8fafc" }}>
+              <div
+                key={entry.id}
+                role={entry.url ? "button" : undefined}
+                tabIndex={entry.url ? 0 : undefined}
+                onClick={() => {
+                  if (entry.url) chrome.tabs?.create?.({ url: entry.url });
+                }}
+                onKeyDown={(e) => {
+                  if (!entry.url) return;
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    chrome.tabs?.create?.({ url: entry.url });
+                  }
+                }}
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: 10,
+                  padding: 10,
+                  background: "#f8fafc",
+                  cursor: entry.url ? "pointer" : "default",
+                }}
+              >
                 <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "space-between" }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 4, minWidth: 0 }}>
                       <span style={{ fontWeight: 700, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{entry.label}</span>
                     </div>
-                    {entry.url && (
-                      <a href={entry.url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#2563eb", textDecoration: "underline" }}>
-                        Open chat
-                      </a>
-                    )}
                   </div>
                   <button
                     type="button"
                     style={{ ...buttonStyle, borderColor: "#fecdd3", color: "#b91c1c", background: "#fff7ed" }}
-                    onClick={() => handleDelete(entry.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(entry.id);
+                    }}
                     disabled={isSaving}
                   >
                     <FiTrash2 size={14} />
