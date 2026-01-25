@@ -191,6 +191,7 @@ export default function BookmarksTab({ sendMessageToActiveTab }) {
     color: "#0f172a",
     outline: "none",
     boxShadow: "inset 0 1px 1px rgba(0,0,0,0.03)",
+    boxSizing: "border-box",
   };
 
   const buttonStyle = {

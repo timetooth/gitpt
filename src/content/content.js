@@ -1,4 +1,4 @@
-import { getSibling, getNext, getCurrentContent, buildTree, goToNode } from "./adj";
+import { getSibling, getNext, getCurrentContent, buildTree, goToNode, waitForArticles } from "./adj";
 
 function getConversationIdFromLocation() {
   try {
@@ -26,7 +26,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "BUILD_TREE") {
     (async () => {
       try {
+        const ready = await waitForArticles(1, 2500);
+        if (!ready) {
+          sendResponse({
+            success: false,
+            error: "No chat turns found yet. Wait for the page to load, then refresh.",
+          });
+          return;
+        }
         const { graph, meta } = await buildTree();
+        if (graph.size === 0 && meta.size <= 1) {
+          sendResponse({
+            success: false,
+            error: "No chat turns found yet. Wait for the page to load, then refresh.",
+          });
+          return;
+        }
         const graphObj = Object.fromEntries(Array.from(graph.entries()));
         const metaObj = Object.fromEntries(Array.from(meta.entries()));
         const responsePayload = {

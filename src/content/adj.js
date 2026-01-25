@@ -5,6 +5,19 @@ const ARTICLE_SEL = 'article[data-turn-id]';
 const PREV_SEL = 'button[aria-label="Previous response"]';
 const NEXT_SEL = 'button[aria-label="Next response"]';
 
+function getArticles() {
+  return Array.from(document.querySelectorAll(ARTICLE_SEL));
+}
+
+async function waitForArticles(minCount = 1, timeoutMs = 2000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    if (getArticles().length >= minCount) return true;
+    await sleep(50);
+  }
+  return false;
+}
+
 function sleep(ms) {
   return new Promise(r => setTimeout(r, ms));
 }
@@ -22,7 +35,7 @@ async function waitForChildTurnChange(parentId, beforeChildId, timeoutMs = 2000)
 
 function getCurrent(node_id) {
     // Return the article with the given node_id
-    let articles = Array.from(document.querySelectorAll("article"));
+    let articles = getArticles();
     if (articles.length === 0 || node_id === "root") {
         return null;
     }
@@ -41,7 +54,7 @@ function getCurrent(node_id) {
 
 function getCurrentContent(node_id) {
     // Return the article with the given node_id
-    let articles = Array.from(document.querySelectorAll("article"));
+    let articles = getArticles();
     if (articles.length === 0 || node_id === "root") {
         return "GitPT";
     }
@@ -60,7 +73,7 @@ function getCurrentContent(node_id) {
 
 function getNext(node_id) {
     // Return the next article after the article with the given node_id
-    let articles = Array.from(document.querySelectorAll("article"));
+    let articles = getArticles();
     if (articles.length === 0) {
         return null;
     }
@@ -240,4 +253,4 @@ async function goToNode(targetId, graph) {
   return path; // optional: return the traversed path
 }
 
-export { getNext, hasSibling, getSibling, getCurrentContent, buildTree, resetNext, goToNode };
+export { getNext, hasSibling, getSibling, getCurrentContent, buildTree, resetNext, goToNode, waitForArticles };
